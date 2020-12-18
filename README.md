@@ -1,6 +1,6 @@
 # Plotting routines and processed data for ACCESS-CM2 Specific Heat Calculations
 
-Contains data and code to plot specific heat properties from ACCESS-CM2 PI control output, including in the submitted article:
+Contains data and code to plot specific heat properties from ACCESS-CM2 PI control output included as Figs. 5 and 6 in the submitted article:
 
 McDougall, T., J., Barker, P.M., Holmes, R.M., Pawlowicz, R., Griffies, S. and Durack, P.: The interpretation of temperature and salinity variables in numerical ocean model output, and the calculation of heat fluxes and heat content. Submitted to the Geoscientific Model Development.
 
