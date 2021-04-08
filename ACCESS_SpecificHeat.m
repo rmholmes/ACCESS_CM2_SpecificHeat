@@ -314,7 +314,7 @@ plot(mean(var)*[1 1],[ymax*0.43 ymax*0.57],'-r','linewidth',3);
 text(mean(var),ymax*0.6,sprintf('%3.3f',mean(var)),'HorizontalAlignment','left','color','r');%,'BackgroundColor','w','Margin',0.04);
 top = prctile(var,95);
 bot = prctile(var,5);
-plot(top*[1 1],[ymax*0.43 ymax*0.57],'-r','linewidth',3);
+XSXSXplot(top*[1 1],[ymax*0.43 ymax*0.57],'-r','linewidth',3);
 text(top,ymax*0.4,sprintf('%3.3f',top),'HorizontalAlignment','left','color','r');%,'BackgroundColor','w','Margin',0.04);
 plot(bot*[1 1],[ymax*0.43 ymax*0.57],'-r','linewidth',3);
 text(bot,ymax*0.4,sprintf('%3.3f',bot),'HorizontalAlignment','right','color','r');%,'BackgroundColor','w','Margin',0.04);
