@@ -2,7 +2,7 @@
 
 This repository contains post-processed ACCESS-CM2 PI control CMIP6 climate model output and code used to produce Figs. 5, 6 and 9 in the published article:
 
-McDougall, T., J., Barker, P.M.,Holmes, R.M., Pawlowicz, R., Griffies, S. and Durack, P. (2021): The interpretation of temperature and salinity variables in numerical ocean model output and the calculation of heat fluxes and heat content,Geoscientific Model Development,14, 1-21, [https://doi.org/10.5194/gmd-2020-426](https://doi.org/10.5194/gmd-14-1-2021)
+McDougall, T., J., Barker, P.M.,Holmes, R.M., Pawlowicz, R., Griffies, S. and Durack, P. (2021): The interpretation of temperature and salinity variables in numerical ocean model output and the calculation of heat fluxes and heat content,Geoscientific Model Development,14, 1-21, [https://doi.org/10.5194/gmd-2020-426](https://doi.org/10.5194/gmd-2020-426)
 
 The processed ACCESS-CM2 data is included as .mat files and is accompanied by Matlab processing routines (including code from the TEOS-10 Gibbs SeaWater Oceanographic Toolbox, [https://www.teos-10.org/software.htm#1](https://www.teos-10.org/software.htm#1)) to produce the figures.
 
