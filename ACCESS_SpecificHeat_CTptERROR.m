@@ -1,10 +1,15 @@
-% This script calculates various specific heat related properties
-% in ACCESS-CM2 PI control or historical simulations
+% This script calculates RMSE errors for calculating Conservative
+% temperature from monthly-averaged potential temperature and
+% salinity compared to monthly-averages of the instantaneous
+% Conservative Temperature from ACCESS-CM2.
 
 plot_only = 1;
 PI_or_his = 1; % 1 = PI-control, 0 = historical simualtion
 mname = 'ACCESS_SpecificHeat_PIcontrol_CTptERROR.mat';
 
+%%% This code block generates the post-processed "mname" .mat file
+%%% from ACCESS-CM2 output located on NCI (not neccessary if you
+%%% are already in possesion of the processed mname file). 
 if (~plot_only)
 
     if (PI_or_his)
@@ -62,11 +67,14 @@ for fi = 1:length(files)
         CT_from_pt_SqEr = (CT_from_pt_SqEr*sum(DT_A(1:(end-tL))) + sum(ERROR.*repmat(permute(DT_A_t,[4 3 2 1]),[xL yL zL 1]),4))/sum(DT_A);
         
         if (mod(fi,5)==0)
-            save(mname,'time','DT_A','lon','lat','area','CT_from_pt_SqEr','Z');%, ...
-% $$$                  ,'Q_S','Qf_S');
+            save(mname,'time','DT_A','lon','lat','area','CT_from_pt_SqEr','Z');
         end
     end
 end
+
+%%% This code block plots the figures given the post-processed "mname" .mat file.
+%%%
+%%%
 
 else
 load(mname);
