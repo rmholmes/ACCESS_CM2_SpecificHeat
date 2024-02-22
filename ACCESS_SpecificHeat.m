@@ -1,16 +1,17 @@
 % This script calculates various specific heat related properties
 % in ACCESS-CM2 PI control or historical simulations
 
-plot_only = 1;
+plot_only = 0;
 PI_or_his = 1; % 1 = PI-control, 0 = historical simualtion
 mname = 'ACCESS_SpecificHeat_PIcontrol_SWP.mat';
+mname = 'ACCESS_SpecificHeat_PIcontrol_SWP_2Cwarm.mat';
 % $$$ PI_or_his = 0; % 1 = PI-control, 0 = historical simualtion
 % $$$ mname = 'ACCESS_SpecificHeat_historical.mat';
 
 if (~plot_only)
 
     if (PI_or_his)
-        base = '/g/data/p66/cm2704/archive/bi889/history/ocn/';
+        base = '/g/data/p66/cm2704/archive/ACCESS-CM2/bi889/history/ocn/';
         name = 'PIcontrol';
         fname = [base 'ocean_month.nc-08500630'];
     else
@@ -45,6 +46,8 @@ Cp0_cor = Cp0/Cp0_teos10; % correction factor
 PS_to_SA = 35.16504/35; % conversion factor Practical Salinity ->
                         % Absolute Salinity
 
+Twarm = 2;              % Global warming to add for CpR_on_Cp0
+
 % Define salinity bins:
 dS = 1;
 Smax = 40;
@@ -65,6 +68,8 @@ dCp_dS_mean = CT_SA_pt_t*Cp0_teos10; % dCp/dS at mean PT and PS
 % $$$ Qf_S = zeros(sL,1); % Qf binned into salinity bins
 CpR_on_Cp0 = zeros(xL,yL); % Cp(SA,PT,0dbar)/Cp0 -> ratio of Cp for
                            % potential temperature to Cp0.
+CpR_on_Cp0_warm = zeros(xL,yL); % Cp(SA,PT,0dbar)/Cp0 -> ratio of Cp for
+                           % potential temperature to Cp0, with warming
 Q  = zeros(xL,yL); % Q spatial map
 Qf = zeros(xL,yL); % Qf = CpR_on_Cp0*Q = the heat flux the ocean has
                    % recieved if it has interpreted its surface
@@ -73,11 +78,20 @@ Qf = zeros(xL,yL); % Qf = CpR_on_Cp0*Q = the heat flux the ocean has
 Qf_swp = zeros(xL,yL); % The correction to Qf if short-wave
                        % penetration is correctly taken into
                        % account.
+Qf_warm = zeros(xL,yL); % Qf = CpR_on_Cp0*Q = the heat flux the ocean has
+                   % recieved if it has interpreted its surface
+                   % temperature as potential temperature but still
+                   % used Cp0 for its specific heat, with warming
+Qf_swp_warm = zeros(xL,yL); % The correction to Qf if short-wave
+                       % penetration is correctly taken into
+                       % account, with warming
 PT_ts = []; % Global surface mean PT
 PS_ts = []; % Global surface mean PS
 Q_ts = [];  % Globally summed Q time-series
 Qf_ts = []; % Globally summed Qf time-series
 Qf_swp_ts = []; % Globally summed Qf time-series
+Qf_ts_warm = []; % Globally summed Qf time-series
+Qf_swp_ts_warm = []; % Globally summed Qf time-series
 
 Qs = zeros(xL,yL); % Qs = Q*(PS-PS_mean) spatial map;
 Qs_ts = []; % Qs_ts = time series of Qs globally integrated.
@@ -113,21 +127,28 @@ for fi = 1:length(files)
         [~,CpR_on_Cp0_t] = gsw_CT_first_derivatives(PS*PS_to_SA,PT);
         CpR_on_Cp0_t = CpR_on_Cp0_t/Cp0_cor; % Correct for
                                            % differing Cp0s.
+        [~,CpR_on_Cp0_t_warm] = gsw_CT_first_derivatives(PS*PS_to_SA,PT+Twarm);
+        CpR_on_Cp0_t_warm = CpR_on_Cp0_t_warm/Cp0_cor; % Correct for
+                                           % differing Cp0s.
         
         Q_t = ncread(fname,'sfc_hflux_from_runoff')+ ...
                  ncread(fname,'sfc_hflux_coupler')+ ...
                  ncread(fname,'sfc_hflux_pme')+ ...
                  squeeze(nansum(ncread(fname,'frazil_3d'),3));
         Qf_t = CpR_on_Cp0_t.*Q_t;
+        Qf_t_warm = CpR_on_Cp0_t_warm.*Q_t;
         
         % Shortwave penetration correction:
         PT_3d = ncread(fname,'pot_temp',[1 1 1 1],[xL yL zL tL]);
         PS_3d = ncread(fname,'salt',[1 1 1 1],[xL yL zL tL]);
         [~,CpR_on_Cp0_3d] = gsw_CT_first_derivatives(PS_3d*PS_to_SA,PT_3d);
         CpR_on_Cp0_3d = CpR_on_Cp0_3d/Cp0_cor;
+        [~,CpR_on_Cp0_3d_warm] = gsw_CT_first_derivatives(PS_3d*PS_to_SA,PT_3d+Twarm);
+        CpR_on_Cp0_3d_warm = CpR_on_Cp0_3d_warm/Cp0_cor;
         
         sw_heat = ncread(fname,'sw_heat',[1 1 1 1],[xL yL zL tL]);
         Qf_swp_t = squeeze(nansum(CpR_on_Cp0_3d.*sw_heat,3));
+        Qf_swp_t_warm = squeeze(nansum(CpR_on_Cp0_3d_warm.*sw_heat,3));
 
 % $$$         % do salinity binning:
 % $$$         Q_S_t = zeros(sL,tL);
@@ -149,9 +170,15 @@ for fi = 1:length(files)
         Qf = (Qf*sum(DT_A(1:(end-tL))) + sum(Qf_t.*repmat(permute(DT_A_t,[3 2 1]),[xL yL 1]),3))/sum(DT_A);
         Qf_swp = (Qf_swp*sum(DT_A(1:(end-tL))) + sum(Qf_swp_t.*repmat(permute(DT_A_t,[3 2 1]),[xL yL 1]),3))/sum(DT_A);
 
+        CpR_on_Cp0_warm = (CpR_on_Cp0_warm*sum(DT_A(1:(end-tL))) + sum(CpR_on_Cp0_t_warm.*repmat(permute(DT_A_t,[3 2 1]),[xL yL 1]),3))/sum(DT_A);
+        Qf_warm = (Qf_warm*sum(DT_A(1:(end-tL))) + sum(Qf_t_warm.*repmat(permute(DT_A_t,[3 2 1]),[xL yL 1]),3))/sum(DT_A);
+        Qf_swp_warm = (Qf_swp_warm*sum(DT_A(1:(end-tL))) + sum(Qf_swp_t_warm.*repmat(permute(DT_A_t,[3 2 1]),[xL yL 1]),3))/sum(DT_A);
+
         Q_ts = cat(1,Q_ts,squeeze(nansum(nansum(Q_t.*repmat(area,[1 1 tL]),1),2)));
         Qf_ts = cat(1,Qf_ts,squeeze(nansum(nansum(Qf_t.*repmat(area,[1 1 tL]),1),2)));
         Qf_swp_ts = cat(1,Qf_swp_ts,squeeze(nansum(nansum(Qf_swp_t.*repmat(area,[1 1 tL]),1),2)));
+        Qf_ts_warm = cat(1,Qf_ts_warm,squeeze(nansum(nansum(Qf_t_warm.*repmat(area,[1 1 tL]),1),2)));
+        Qf_swp_ts_warm = cat(1,Qf_swp_ts_warm,squeeze(nansum(nansum(Qf_swp_t_warm.*repmat(area,[1 1 tL]),1),2)));
         PT_ts = cat(1,PT_ts,PT_a);
         PS_ts = cat(1,PS_ts,PS_a);
 
@@ -166,6 +193,7 @@ for fi = 1:length(files)
         if (mod(fi,5)==0)
             save(mname,'OHC','time','DT_A','mask','Cp0','Cp0_teos10','CpR_mean', 'dCp_dS_mean','lon','lat','area','yt_ocean', ...
                  'CpR_on_Cp0','Q','Qf','Q_ts','Qs','Qf_ts','Qs_ts','S','Sa','Qf_swp','Qf_swp_ts', ...
+                 'Qf_warm','CpR_on_Cp0_warm','Qf_ts_warm','Qf_swp_warm','Qf_swp_ts_warm', ...
                  'PT_ts','PS_ts');%, ...
 % $$$                  ,'Q_S','Qf_S');
         end
@@ -260,7 +288,7 @@ set(gca,'Position',poss(4,:));
 set(gca,'color',0.5*[1 1 1]);
 text(-275,67,['(d) $\Delta ' lab '$'],'Backgroundcolor','w');
 
-colormap(cmocean('balance'));
+% colormap(cmocean('balance'));
 
 % Histograms:
 % Area-weighting:
@@ -314,7 +342,7 @@ plot(mean(var)*[1 1],[ymax*0.43 ymax*0.57],'-r','linewidth',3);
 text(mean(var),ymax*0.6,sprintf('%3.3f',mean(var)),'HorizontalAlignment','left','color','r');%,'BackgroundColor','w','Margin',0.04);
 top = prctile(var,95);
 bot = prctile(var,5);
-XSXSXplot(top*[1 1],[ymax*0.43 ymax*0.57],'-r','linewidth',3);
+plot(top*[1 1],[ymax*0.43 ymax*0.57],'-r','linewidth',3);
 text(top,ymax*0.4,sprintf('%3.3f',top),'HorizontalAlignment','left','color','r');%,'BackgroundColor','w','Margin',0.04);
 plot(bot*[1 1],[ymax*0.43 ymax*0.57],'-r','linewidth',3);
 text(bot,ymax*0.4,sprintf('%3.3f',bot),'HorizontalAlignment','right','color','r');%,'BackgroundColor','w','Margin',0.04);

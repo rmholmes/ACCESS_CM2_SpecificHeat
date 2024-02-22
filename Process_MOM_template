@@ -1,0 +1,18 @@
+#!/bin/bash
+#PBS -N CM2a
+#PBS -P dx2
+#PBS -l ncpus=1
+#PBS -l mem=8GB
+#PBS -l walltime=12:00:00
+#PBS -l wd
+#PBS -l software=matlab_unsw
+#PBS -l storage=gdata/hh5+gdata/p66+gdata/p73
+#PBS -q normal
+#PBS -M ryan.holmes@bom.gov.au
+#PBS -m e
+
+module load matlab
+module load matlab_licence/unsw
+
+matlab -nodisplay -nodesktop -nosplash -r "ACCESS_SpecificHeat;exit;"
+
